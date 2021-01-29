@@ -4,9 +4,24 @@ from quart import Quart, request, jsonify
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 
-from back.settings import API_HASH, API_ID, SESSION_FILE
+from settings import API_HASH, API_ID, SESSION_FILE
+
+# get session information
+
+try:
+    with open(SESSION_FILE) as fh:
+        session_string = fh.read()
+        if not session_string:
+            raise ValueError('Missing auth session string, run auth.py first')
+except FileNotFoundError or Exception:
+    logging.exception(f'when reading session file:')
+    raise
 
 app = Quart(__name__)
+
+
+def get_client() -> TelegramClient:
+    return TelegramClient(StringSession(session_string), API_ID, API_HASH)
 
 
 def parse_data(data):
@@ -15,19 +30,6 @@ def parse_data(data):
         'username',
     ]
     return {k: v for k, v in data.items() if k in requested}
-
-
-def get_client() -> TelegramClient:
-    try:
-        with open(SESSION_FILE) as fh:
-            session_string = fh.read()
-            if not session_string:
-                raise ValueError('Missing auth session string, run auth.py first')
-    except FileNotFoundError or Exception:
-        logging.exception(f'when reading session file:')
-        raise
-    else:
-        return TelegramClient(StringSession(session_string), API_ID, API_HASH)
 
 
 @app.route('/info', methods=['POST'])
