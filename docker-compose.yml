@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  frontbuilder:
+    build: .
+    volumes:
+      - ./front/src:/app/src
+      - ./dist:/app/dist
+    command: >
+      sh -c "npm run dev"
+    ports:
+      - 8080:8080
