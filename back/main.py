@@ -1,6 +1,7 @@
 import logging
 
 from quart import Quart, request, jsonify
+from quart_cors import cors
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 
@@ -18,30 +19,53 @@ except FileNotFoundError or Exception:
     raise
 
 app = Quart(__name__)
+app = cors(app, allow_origin=["http://localhost:8080", "http://127.0.0.1:8080"])
 
 
 def get_client() -> TelegramClient:
     return TelegramClient(StringSession(session_string), API_ID, API_HASH)
 
 
-def parse_data(data):
-    requested = [
-        'name',
-        'username',
-    ]
-    return {k: v for k, v in data.items() if k in requested}
+def parse_data(data) -> dict:
+    restricted = ['access_hash', 'id', 'phone']
+    return {k: v for k, v in data.__dict__.items()
+            if isinstance(v, (int, str, bool, float))
+            and k not in restricted}
+
+
+@app.route('/me')
+async def me():
+    try:
+        async with get_client() as client:
+            data = await client.get_me()
+            return parse_data(data)
+    except Exception as e:
+        logging.exception('when retrieving self info:')
+        return {'error': f'{e}'}
 
 
 @app.route('/info', methods=['POST'])
 async def info():
-    data = await request.form
+    try:
+        data = await request.get_json()
+    except Exception as e:
+        logging.exception(f'when decoding JSON')
+        return {'error': f'{e}'}
+
     entity = data.get('entity')
     if not entity:
-        return jsonify({'error': 'specify entity'})
+        return {'error': 'specify entity'}
+
     logging.debug(f'requested {entity} info')
     async with get_client() as client:
         data = await client.get_entity(entity)
-        return jsonify(parse_data(data.__dict__))
+        return parse_data(data)
+
+
+@app.route('/check')
+async def check():
+    """simple healthcheck"""
+    return {'status': 'ok'}
 
 
 @app.route('/')

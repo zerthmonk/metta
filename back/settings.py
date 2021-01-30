@@ -3,10 +3,11 @@ import logging
 from dotenv import load_dotenv
 from logger import get_logger
 
-load_dotenv()
-
 DEBUG = os.getenv('DEBUG')
 ROOT = os.path.dirname(os.path.dirname(__file__))
+
+if not os.getenv('DOCKER'):
+    load_dotenv()
 
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')

@@ -8,6 +8,7 @@ telethon = "*"
 python-dotenv = "*"
 flask = "*"
 quart = "*"
+quart-cors = "*"
 
 [dev-packages]
 
