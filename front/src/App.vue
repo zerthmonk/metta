@@ -84,12 +84,16 @@ html, body
   margin: auto
   background: $bg-normal
   height: 100%
-  width: 90vw
+  width: 100%
   max-width: 1140px
 
 .content
-  padding: 2rem
+  padding: 1.5rem
+
+.user-content
+  border-bottom: 1px solid lighten($bg-normal, 10%)
 
 a
   color: $main-normal
+
 </style>

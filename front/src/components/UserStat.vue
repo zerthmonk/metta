@@ -27,7 +27,7 @@ export default {
     },
     size: {
       type: String,
-      default: '45px'
+      default: '60px'
     }
   },
 
@@ -44,7 +44,7 @@ export default {
   @import '../assets/variables'
 
   .user-stat
-    color: $main-normal;
+    color: $main-light;
     display: flex
     justify-content: space-between
     max-width: 100%
@@ -62,6 +62,6 @@ export default {
     text-decoration: none
 
     &:hover
-      color: lighten($main-normal, 25%);
+      color: darken($main-normal, 15%)
 
 </style>

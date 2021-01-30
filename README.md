@@ -15,5 +15,9 @@ API_HASH='api_hash'
 
 -----
 
-**Источники вдохновения:**
-- [Vue + Gulp project setup](https://github.com/dbybanez/vue-gulp-boilerplate/tree/master/test-app) by [@dbbybanez](https://github.com/dbybanez)
+Обоснование стека:
+
+- Vue - все просто - в вашем стеке есть, я его не знаю, изучение привлекает больше чем React (и тем более Angular).
+- Telethon - широкие возможности по собиранию статистики каналов (подписчиков, например)
+- Quart - асинхронный брат Flask. Очень на него похож. Выбран потому, что я не настолько хорошо знаю Telethon, чтобы пользоваться его синхронным клиентом в связке с Flask.
+- docker - потому что не хочу много node в системе :)
