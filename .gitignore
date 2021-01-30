@@ -2,6 +2,7 @@
 .session
 *.session
 .idea/
+shared/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

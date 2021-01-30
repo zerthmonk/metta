@@ -1,22 +1,41 @@
 <template>
-  <div v-if="user">
-    <div class="user-photo">
-    </div>
-    <div class="user-info">
-      <p>{{user.username}}</p>
-      <p>{{user.first_name}} {{user.last_name}}</p>
+  <div class="user-stat" v-if="user">
+    <UserPhoto
+      :uid="user.id"
+      :size="size"
+    />
+    <div class="user-stat_info"
+      :style="lineSize"
+    >
+      <span>logged as:
+      <a :href=link>@{{user.username}} ( {{user.first_name}} {{user.last_name}} )</a>
+      </span>
+      <span></span>
     </div>
   </div>
-  <p v-else>loading...</p>
+  <p v-else>logging in...</p>
 </template>
 
 <script>
+import UserPhoto from './UserPhoto.vue';
+
 export default {
   props: {
     user: {
       type: Object,
       requested: true
     },
+    size: {
+      type: String,
+      default: '45px'
+    }
+  },
+
+  components: { UserPhoto },
+
+  computed: {
+    link() { return `https://t.me/${this.user.username}` },
+    lineSize() { return `line-height: ${this.size};` }
   }
 }
 </script>
@@ -24,13 +43,25 @@ export default {
 <style lang="sass" scoped>
   @import '../assets/variables'
 
-  .user-photo
-    background: beige
-    max-width: 100px
-    max-height: 100px
-    border-radius: 50%
-
-  p
+  .user-stat
     color: $main-normal;
+    display: flex
+    justify-content: space-between
+    max-width: 100%
+    width: auto
+    font-family: monospace
+    font-weight: 600
+    letter-spacing: 1px
+    text-transform: uppercase
+
+  .user-stat_info
+    margin-left: 2rem
+    height: 100%
+
+  a
+    text-decoration: none
+
+    &:hover
+      color: lighten($main-normal, 25%);
 
 </style>

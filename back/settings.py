@@ -3,8 +3,9 @@ import logging
 from dotenv import load_dotenv
 from logger import get_logger
 
-DEBUG = os.getenv('DEBUG')
+DEBUG = os.getenv('DEBUG', True)
 ROOT = os.path.dirname(os.path.dirname(__file__))
+SHARED = os.path.join(ROOT, 'shared')
 
 if not os.getenv('DOCKER'):
     load_dotenv()
