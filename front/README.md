@@ -1,18 +1,7 @@
 # metta
 
-> telegram demo grabber
-
-## Build Setup
-
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
-```
-
-For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
+**notes:**
+- scaffold with [webpack-simple template](https://github.com/vuejs-templates/webpack-simple)
+- this project [simple todo](https://codesandbox.io/s/o29j95wx9) for reference
+- axios over fetch (for brewity!). Not sure about placing it in devDep or dep, though
+-
