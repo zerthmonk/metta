@@ -1,3 +1,4 @@
+import os
 import logging
 
 from quart import Quart, request, jsonify
@@ -5,7 +6,7 @@ from quart_cors import cors
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 
-from settings import API_HASH, API_ID, SESSION_FILE
+from settings import API_HASH, API_ID, SESSION_FILE, SHARED, DEBUG
 
 # get session information
 
@@ -26,22 +27,42 @@ def get_client() -> TelegramClient:
     return TelegramClient(StringSession(session_string), API_ID, API_HASH)
 
 
-def parse_data(data) -> dict:
-    restricted = ['access_hash', 'id', 'phone']
-    return {k: v for k, v in data.__dict__.items()
+def parse_data(payload) -> dict:
+    data = payload.__dict__
+    restricted = ['access_hash', 'phone']
+    logging.debug(f'parsing {data}\n restricted fields: {restricted}')
+    return {k: v for k, v in data.items()
             if isinstance(v, (int, str, bool, float))
             and k not in restricted}
+
+
+async def get_profile_photo(client, entity) -> str:
+    fpath = os.path.join(SHARED, f'{entity.id}.jpg')
+    if os.path.isfile(fpath):
+        return fpath
+    data = await client.download_profile_photo(entity, fpath)
+    return fpath if data else ''
+
+
+async def get_info(entity, with_photo=True) -> dict:
+    async with get_client() as client:
+        data = await client.get_entity(entity)
+        result = parse_data(data)
+        if with_photo:
+            image = await get_profile_photo(client, data)
+            result.update({'photo': image})
+        return result
 
 
 @app.route('/me')
 async def me():
     try:
-        async with get_client() as client:
-            data = await client.get_me()
-            return parse_data(data)
+        data = await get_info('me')
+        return data
     except Exception as e:
-        logging.exception('when retrieving self info:')
-        return {'error': f'{e}'}
+        _msg = 'when retrieving self info:'
+        logging.exception(_msg)
+        return {'error': f'{_msg} {e}'}
 
 
 @app.route('/info', methods=['POST'])
@@ -54,12 +75,11 @@ async def info():
 
     entity = data.get('entity')
     if not entity:
-        return {'error': 'specify entity'}
+        return {'error': 'search item not specified!'}
 
     logging.debug(f'requested {entity} info')
-    async with get_client() as client:
-        data = await client.get_entity(entity)
-        return parse_data(data)
+    data = await get_info(entity)
+    return data
 
 
 @app.route('/check')
@@ -74,4 +94,4 @@ async def root():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', debug=DEBUG)
