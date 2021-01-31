@@ -2,7 +2,10 @@
 .session
 *.session
 .idea/
-shared/
+files/shared/*
+files/session/*
+!.gitignore
+!.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
