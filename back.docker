@@ -1,0 +1,12 @@
+FROM python:3.7-slim
+
+ENV PYTHONUBUFFERED=1
+
+COPY back/Pipfile /
+RUN python -m pip install --upgrade pip && \
+    python -m pip install pipenv
+RUN pipenv lock && pipenv install
+
+RUN mkdir /app
+WORKDIR /app
+

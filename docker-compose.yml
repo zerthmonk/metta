@@ -1,10 +1,11 @@
 version: '3'
 
 services:
-  frontbuilder:
+
+  metta-front:
     build:
-      context: ./
-      dockerfile: docker/front.docker
+      context: .
+      dockerfile: ./front.docker
     volumes:
       - ./front/src:/app/src
       - ./shared:/app/dist
@@ -15,3 +16,32 @@ services:
       sh -c "npm run dev"
     ports:
       - 8080:8080
+    networks:
+      - metta_network
+
+  metta-back:
+    build:
+      context: .
+      dockerfile: ./back.docker
+    restart: unless-stopped
+    env_file: '.env'
+    environment:
+      - DOCKER=True
+      - PIPENV_PIPFILE=/Pipfile
+    volumes:
+      - ./back:/app
+      - ./shared:/app/shared
+    command: >
+      sh -c "cd / && pipenv run python /app/main.py"
+    ports:
+      - 5000:5000
+    networks:
+      - metta_network
+
+
+networks:
+  metta_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24

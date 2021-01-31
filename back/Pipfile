@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 telethon = "*"
 python-dotenv = "*"
-flask = "*"
 quart = "*"
 quart-cors = "*"
 
