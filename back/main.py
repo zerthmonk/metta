@@ -12,6 +12,7 @@ from auth import authenticate
 from settings import API_HASH, API_ID, SESSION_FILE, SHARED, DEBUG, CORS_ORIGINS
 
 
+SESSION_STRING = ''
 app = Quart(__name__)
 app = cors(app, allow_origin=CORS_ORIGINS)
 
@@ -79,6 +80,7 @@ async def get_profile_photo(client, entity) -> str:
     data = await client.download_profile_photo(entity, fpath)
     return fpath if data else ''
 
+
 @app.route('/me')
 async def me():
     """get self info handle"""
@@ -114,10 +116,17 @@ async def check():
     """simple check"""
     return 'API check'
 
-
 @app.route('/')
 async def root():
     return 'it works'
+
+
+async def main():
+    try:
+        SESSION_STRING = await get_session_string(SESSION_FILE)
+        return True
+    except KeyboardInterrupt:
+        await asyncio.sleep(0)
 
 
 if __name__ == '__main__':

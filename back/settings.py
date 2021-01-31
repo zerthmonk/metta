@@ -5,6 +5,7 @@ from logger import get_logger
 
 DEBUG = os.getenv('DEBUG')
 
+
 if os.getenv('DOCKER'):
       # variables set in docker-compose.yml or .env file
     SHARED = os.getenv('SHARED')
@@ -22,6 +23,7 @@ else:
     # set logging
     logging.root = get_logger(APPROOT, DEBUG)
 
+
 # Telegram credentials
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
@@ -35,7 +37,6 @@ CORS_ORIGINS = [
   'http://metta-proxy',
   'http://metta-front'
 ]
-
 
 if not API_HASH or not API_ID:
     raise SystemExit('API_ID/API_HASH pair not set, check .env file')
