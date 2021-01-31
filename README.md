@@ -11,11 +11,12 @@
 - Залогиниться в [аккаунт Telegram](https://my.telegram.org/) с тем номером, который вы хотите использовать в приложении
 - Кликнуть API Development
 - Ввести новое имя и описание приложения (они могут быть любыми) и нажать кнопку "Create application"
-- создать в корневой директории проекта файл `.env` с api_hash и api_id из предыдущего пункта
+- скопировать в корневой директории проекта файл `env.template` в `.env` 
+- записать туда api_hash и api_id из предыдущего пункта
 
 ```
-API_ID='api_id'
-API_HASH='api_hash'
+API_ID=<api_id>
+API_HASH=<api_hash>
 ```
 
 - запустить процедуру аутентификации в Telegram через  `docker-compose run metta-back` (или `pipenv run python back/auth.py`)
