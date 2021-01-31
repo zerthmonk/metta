@@ -9,29 +9,56 @@ from telethon import TelegramClient
 from telethon.sessions import StringSession
 
 from auth import authenticate
-from settings import API_HASH, API_ID, SESSION_FILE, SHARED, DEBUG
+from settings import API_HASH, API_ID, SESSION_FILE, SHARED, DEBUG, CORS_ORIGINS
 
 
 SESSION_STRING = ''
 app = Quart(__name__)
-app = cors(app, allow_origin=["http://localhost:8080", "http://127.0.0.1:8080"])
+app = cors(app, allow_origin=CORS_ORIGINS)
+
+class SessionConfig:
+
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self._session = ''
+
+    async def auth(self):
+        """read existing session string from file or try to authenticate"""
+        if self._session:
+            return self._session
+
+        try:
+            with open(self.file_path) as fh:
+                self._session = fh.read()
+            if not self._session:
+                self._session = await authenticate(self.file_path)
+            return self._session
+        except KeyboardInterrupt:
+            await asyncio.sleep(0)
+        except FileNotFoundError or Exception:
+            logging.exception(f'when reading session file:')
+            raise
+
+    @property
+    def client(self) -> TelegramClient:
+        if not self._session:
+            raise SystemExit('not authorized!')
+        return TelegramClient(StringSession(self._session), API_ID, API_HASH)
 
 
-async def get_session_string(fpath):
-    """read existing session string from file or try to authenticate"""
-    try:
-        with open(fpath) as fh:
-            session_string = fh.read()
-        if not session_string:
-            session_string = await authenticate(fpath)
-        return session_string
-    except FileNotFoundError or Exception:
-        logging.exception(f'when reading session file:')
-        raise
+session = SessionConfig(SESSION_FILE)
 
 
-def get_client() -> TelegramClient:
-    return TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
+async def get_info(entity, with_photo=True) -> dict:
+    """get full info from entity"""
+    logging.debug(f'getting info for {entity}')
+    async with session.client as client:
+        data = await client.get_entity(entity)
+        result = parse_data(data)
+        if with_photo:
+            image = await get_profile_photo(client, data)
+            result.update({'photo': image})
+        return result
 
 
 def parse_data(payload) -> dict:
@@ -54,28 +81,16 @@ async def get_profile_photo(client, entity) -> str:
     return fpath if data else ''
 
 
-async def get_info(entity, with_photo=True) -> dict:
-    """get full info from entity"""
-    logging.debug(f'getting info for {entity}')
-    async with get_client() as client:
-        data = await client.get_entity(entity)
-        result = parse_data(data)
-        if with_photo:
-            image = await get_profile_photo(client, data)
-            result.update({'photo': image})
-        return result
-
-
 @app.route('/me')
 async def me():
     """get self info handle"""
     try:
         data = await get_info('me')
-        return data
+        return jsonify(data)
     except Exception as e:
         _msg = 'when retrieving self info:'
         logging.exception(_msg)
-        return {'error': f'{_msg} {e}'}
+        return jsonify({'error': f'{_msg} {e}'})
 
 
 @app.route('/info', methods=['POST'])
@@ -93,12 +108,17 @@ async def info():
 
     logging.debug(f'requested {entity} info')
     data = await get_info(entity)
-    return data
+    return jsonify(data)
 
+
+@app.route('/check')
+async def check():
+    """simple check"""
+    return 'API check'
 
 @app.route('/')
 async def root():
-    return f'it works'
+    return 'it works'
 
 
 async def main():
@@ -111,6 +131,8 @@ async def main():
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    authed = loop.run_until_complete(main())
-    if authed:
+    loop.run_until_complete(session.auth())
+    if session._session:
         app.run(host='0.0.0.0', debug=DEBUG)
+    else:
+        raise SystemExit('missing session string, user not authorized')

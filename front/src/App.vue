@@ -18,6 +18,11 @@ import NotificationList from './components/NotificationList.vue';
 import { getUniqueId } from './helpers';
 
 const messageTypeAllowed = ['info', 'error'];
+// cannot succeed in using env :(
+// const backendURL = process.env.VUE_APP_BACKEND_URL;
+const backendURL = 'http://127.0.0.1/api';
+
+console.log(`working with ${backendURL}`);
 
 export default {
   name: 'app',
@@ -39,7 +44,7 @@ export default {
 
   mounted() {
     axios
-      .get('http://127.0.0.1:5000/me')
+      .get(`${backendURL}/me`)
       .then(response => {
         if (response.data.error) { throw response.data.error };
         this.user = response.data;

@@ -16,8 +16,12 @@ services:
       sh -c "npm run dev"
     ports:
       - 8080:8080
-    networks:
-      - metta_network
+
+  metta-proxy:
+    build:
+      context: ./nginx
+    ports:
+      - 80:80
 
   metta-back:
     build:
@@ -27,28 +31,16 @@ services:
     env_file: '.env'
     stdin_open: true
     tty: true
+    volumes:
+      - ./back:/app/src
+      - ./files/shared:/app/shared
+      - ./files/session:/app/session
     environment:
       - DOCKER=True
-      - DEBUG=True
-      - PIPENV_PIPFILE=/.metta/Pipfile
-      - SESSION_FILE=/app/session/.session
+      - DEBUG=False
+      - SESSION=/app/session
       - SHARED=/app/shared
+      - PIPENV_PIPFILE=/.metta/Pipfile
     env_file: .env
-    volumes:
-      - ./back:/app
-      - ./shared:/app/shared
-      - ./files/session:/app/session
     command: >
-      sh -c "cd /.metta/ && pipenv run python /app/main.py"
-    ports:
-      - 5000:5000
-    networks:
-      - metta_network
-
-
-networks:
-  metta_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 10.10.10.0/24
+      sh -c "cd /.metta/ && pipenv run python /app/src/main.py"

@@ -10,3 +10,4 @@ RUN cd /.metta/ && pipenv install
 RUN cat /.metta/Pipfile
 
 WORKDIR /app
+EXPOSE 5000
