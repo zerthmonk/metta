@@ -3,6 +3,9 @@
 </template>
 
 <script>
+
+const IMG = '/shared';
+
 export default {
   props: {
     uid: {
@@ -17,7 +20,7 @@ export default {
   computed: {
     image() {
       return `
-        background-image: url("/dist/${this.uid}.jpg");
+        background-image: url("${IMG}/${this.uid}.jpg");
         width: ${this.size};
         height: ${this.size};
       `

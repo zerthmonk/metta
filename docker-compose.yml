@@ -8,7 +8,7 @@ services:
       dockerfile: ./front.docker
     volumes:
       - ./front/src:/app/src
-      - ./shared:/app/dist
+      - ./files/shared:/app/shared
     environment:
       - HOST=0.0.0.0
       - CHOKIDAR_USEPOLLING=true
