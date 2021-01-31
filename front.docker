@@ -1,7 +1,10 @@
 FROM node:10.15.3-alpine
 
+COPY ./front/package.json \
+     ./front/.babelrc \
+     ./front/index.html \
+     ./front/webpack.config.js /app/
 WORKDIR /app
-COPY ./front .
 RUN npm install --save-dev
 
 EXPOSE 8080

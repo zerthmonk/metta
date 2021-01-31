@@ -31,16 +31,16 @@ services:
     env_file: '.env'
     stdin_open: true
     tty: true
+    volumes:
+      - ./back:/app/src
+      - ./files/shared:/app/shared
+      - ./files/session:/app/session
     environment:
       - DOCKER=True
       - DEBUG=False
-      - PIPENV_PIPFILE=/.metta/Pipfile
-      - SESSION_FILE=/app/session/.session
+      - SESSION=/app/session
       - SHARED=/app/shared
+      - PIPENV_PIPFILE=/.metta/Pipfile
     env_file: .env
-    volumes:
-      - ./back:/app
-      - ./files/shared:/app/shared
-      - ./files/session:/app/session
     command: >
-      sh -c "cd /.metta/ && pipenv run python /app/main.py"
+      sh -c "cd /.metta/ && pipenv run python /app/src/main.py"
