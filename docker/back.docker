@@ -1,0 +1,22 @@
+FROM python:3.7-slim
+
+ENV PYTHONUBUFFERED=1
+RUN mkdir /app ~/.metta
+
+ENV DOCKER=True \
+    PIPENV_PIPFILE=/.metta/Pipfile \
+    SESSION=/app/session \
+    SHARED=/app/shared
+
+COPY back/Pipfile ${PIPENV_PIPFILE}
+
+RUN python -m pip install --upgrade pip && \
+    python -m pip install pipenv
+
+WORKDIR /.metta/ 
+RUN pipenv install
+
+COPY docker/wait-for-it.sh .
+RUN chmod +x wait-for-it.sh
+
+EXPOSE 5000

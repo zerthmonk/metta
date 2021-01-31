@@ -5,42 +5,49 @@ services:
   metta-front:
     build:
       context: .
-      dockerfile: ./front.docker
+      dockerfile: ./docker/front.docker
     volumes:
       - ./front/src:/app/src
       - ./files/shared:/app/shared
-    environment:
-      - HOST=0.0.0.0
-      - CHOKIDAR_USEPOLLING=true
     command: >
       sh -c "npm run dev"
     ports:
       - 8080:8080
 
-  metta-proxy:
-    build:
-      context: ./nginx
-    ports:
-      - 80:80
-
   metta-back:
     build:
       context: .
-      dockerfile: ./back.docker
-    restart: unless-stopped
-    env_file: '.env'
-    stdin_open: true
+      dockerfile: ./docker/back.docker
     tty: true
+    stdin_open: true
     volumes:
       - ./back:/app/src
       - ./files/shared:/app/shared
       - ./files/session:/app/session
     environment:
-      - DOCKER=True
       - DEBUG=False
-      - SESSION=/app/session
-      - SHARED=/app/shared
-      - PIPENV_PIPFILE=/.metta/Pipfile
     env_file: .env
     command: >
-      sh -c "cd /.metta/ && pipenv run python /app/src/main.py"
+      sh -c "
+        ./wait-for-it.sh metta-db:5432 &&
+        pipenv run python /app/src/main.py
+      "
+
+  metta-proxy:
+    build:
+      context: ./docker/nginx
+    ports:
+      - 8090:80
+
+  metta-db:
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+    environment: 
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=$DB_PASS
+      - POSTGRES_NAME=$DB_NAME
+
+volumes:
+  db_volume: {}

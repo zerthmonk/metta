@@ -1,10 +1,15 @@
 FROM node:10.15.3-alpine
 
+WORKDIR /app
+
 COPY ./front/package.json \
      ./front/.babelrc \
      ./front/index.html \
      ./front/webpack.config.js /app/
-WORKDIR /app
+
+ENV HOST=0.0.0.0 \
+    CHOKIDAR_USEPOLLING=true
+
 RUN npm install --save-dev
 
 EXPOSE 8080
