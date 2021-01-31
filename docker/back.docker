@@ -9,9 +9,14 @@ ENV DOCKER=True \
     SHARED=/app/shared
 
 COPY back/Pipfile ${PIPENV_PIPFILE}
+
 RUN python -m pip install --upgrade pip && \
     python -m pip install pipenv
-RUN cd /.metta/ && pipenv install
 
-WORKDIR /app
+WORKDIR /.metta/ 
+RUN pipenv install
+
+COPY docker/wait-for-it.sh .
+RUN chmod +x wait-for-it.sh
+
 EXPOSE 5000

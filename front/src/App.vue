@@ -20,7 +20,7 @@ import { getUniqueId } from './helpers';
 const messageTypeAllowed = ['info', 'error'];
 // cannot succeed in using env :(
 // const backendURL = process.env.VUE_APP_BACKEND_URL;
-const backendURL = 'http://127.0.0.1/api';
+const backendURL = 'http://127.0.0.1:8090/api';
 
 console.log(`working with ${backendURL}`);
 

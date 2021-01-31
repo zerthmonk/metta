@@ -16,6 +16,7 @@ SESSION_STRING = ''
 app = Quart(__name__)
 app = cors(app, allow_origin=CORS_ORIGINS)
 
+
 class SessionConfig:
 
     def __init__(self, file_path):

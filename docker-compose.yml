@@ -5,7 +5,7 @@ services:
   metta-front:
     build:
       context: .
-      dockerfile: ./front.docker
+      dockerfile: ./docker/front.docker
     volumes:
       - ./front/src:/app/src
       - ./files/shared:/app/shared
@@ -17,7 +17,7 @@ services:
   metta-back:
     build:
       context: .
-      dockerfile: ./back.docker
+      dockerfile: ./docker/back.docker
     tty: true
     stdin_open: true
     volumes:
@@ -28,20 +28,26 @@ services:
       - DEBUG=False
     env_file: .env
     command: >
-      sh -c "cd /.metta/ && pipenv run python /app/src/main.py"
+      sh -c "
+        ./wait-for-it.sh metta-db:5432 &&
+        pipenv run python /app/src/main.py
+      "
 
   metta-proxy:
     build:
-      context: ./nginx
+      context: ./docker/nginx
     ports:
-      - 80:80
+      - 8090:80
 
   metta-db:
     image: postgres:latest
     restart: unless-stopped
     volumes:
       - db_volume:/var/lib/postgresql/data
-    env_file: .env
+    environment: 
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=$DB_PASS
+      - POSTGRES_NAME=$DB_NAME
 
 volumes:
   db_volume: {}
