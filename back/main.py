@@ -1,4 +1,6 @@
 import os
+import sys
+import asyncio
 import logging
 
 from quart import Quart, request, jsonify
@@ -6,25 +8,30 @@ from quart_cors import cors
 from telethon import TelegramClient
 from telethon.sessions import StringSession
 
+from auth import authenticate
 from settings import API_HASH, API_ID, SESSION_FILE, SHARED, DEBUG
 
-# get session information
 
-try:
-    with open(SESSION_FILE) as fh:
-        session_string = fh.read()
-        if not session_string:
-            raise ValueError('Missing auth session string, run auth.py first')
-except FileNotFoundError or Exception:
-    logging.exception(f'when reading session file:')
-    raise
-
+SESSION_STRING = ''
 app = Quart(__name__)
 app = cors(app, allow_origin=["http://localhost:8080", "http://127.0.0.1:8080"])
 
 
+async def get_session_string(fpath):
+    """read existing session string from file or try to authenticate"""
+    try:
+        with open(fpath) as fh:
+            session_string = fh.read()
+        if not session_string:
+            session_string = await authenticate(fpath)
+        return session_string
+    except FileNotFoundError or Exception:
+        logging.exception(f'when reading session file:')
+        raise
+
+
 def get_client() -> TelegramClient:
-    return TelegramClient(StringSession(session_string), API_ID, API_HASH)
+    return TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH)
 
 
 def parse_data(payload) -> dict:
@@ -40,11 +47,13 @@ async def get_profile_photo(client, entity) -> str:
     fpath = os.path.join(SHARED, f'{entity.id}.jpg')
     if os.path.isfile(fpath):
         return fpath
+    logging.debug(f'downloading profile photo for {entity.id} to {fpath}')
     data = await client.download_profile_photo(entity, fpath)
     return fpath if data else ''
 
 
 async def get_info(entity, with_photo=True) -> dict:
+    logging.debug(f'getting info for {entity}')
     async with get_client() as client:
         data = await client.get_entity(entity)
         result = parse_data(data)
@@ -93,5 +102,16 @@ async def root():
     return f'it works'
 
 
+async def main():
+    try:
+        SESSION_STRING = await get_session_string(SESSION_FILE)
+        return True
+    except KeyboardInterrupt:
+        await asyncio.sleep(0)
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=DEBUG)
+    loop = asyncio.get_event_loop()
+    authed = loop.run_until_complete(main())
+    if authed:
+        app.run(host='0.0.0.0', debug=DEBUG)
