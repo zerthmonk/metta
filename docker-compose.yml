@@ -31,11 +31,13 @@ services:
       - DOCKER=True
       - DEBUG=True
       - PIPENV_PIPFILE=/.metta/Pipfile
-      - SESSION_FILE=/.metta/.session
+      - SESSION_FILE=/app/session/.session
+      - SHARED=/app/shared
     env_file: .env
     volumes:
       - ./back:/app
       - ./shared:/app/shared
+      - ./files/session:/app/session
     command: >
       sh -c "cd /.metta/ && pipenv run python /app/main.py"
     ports:

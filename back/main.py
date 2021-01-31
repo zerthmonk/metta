@@ -35,6 +35,7 @@ def get_client() -> TelegramClient:
 
 
 def parse_data(payload) -> dict:
+    """parse received from telegram"""
     data = payload.__dict__
     restricted = ['access_hash', 'phone']
     logging.debug(f'parsing {data}\n restricted fields: {restricted}')
@@ -44,6 +45,7 @@ def parse_data(payload) -> dict:
 
 
 async def get_profile_photo(client, entity) -> str:
+    """get photo by profile"""
     fpath = os.path.join(SHARED, f'{entity.id}.jpg')
     if os.path.isfile(fpath):
         return fpath
@@ -53,6 +55,7 @@ async def get_profile_photo(client, entity) -> str:
 
 
 async def get_info(entity, with_photo=True) -> dict:
+    """get full info from entity"""
     logging.debug(f'getting info for {entity}')
     async with get_client() as client:
         data = await client.get_entity(entity)
@@ -65,6 +68,7 @@ async def get_info(entity, with_photo=True) -> dict:
 
 @app.route('/me')
 async def me():
+    """get self info handle"""
     try:
         data = await get_info('me')
         return data
@@ -76,6 +80,7 @@ async def me():
 
 @app.route('/info', methods=['POST'])
 async def info():
+    """get entity info handle"""
     try:
         data = await request.get_json()
     except Exception as e:
@@ -89,12 +94,6 @@ async def info():
     logging.debug(f'requested {entity} info')
     data = await get_info(entity)
     return data
-
-
-@app.route('/check')
-async def check():
-    """simple healthcheck"""
-    return {'status': 'ok'}
 
 
 @app.route('/')
