@@ -3,11 +3,15 @@ FROM python:3.7-slim
 ENV PYTHONUBUFFERED=1
 RUN mkdir /app ~/.metta
 
-COPY back/Pipfile /.metta/Pipfile
+ENV DOCKER=True \
+    PIPENV_PIPFILE=/.metta/Pipfile \
+    SESSION=/app/session \
+    SHARED=/app/shared
+
+COPY back/Pipfile ${PIPENV_PIPFILE}
 RUN python -m pip install --upgrade pip && \
     python -m pip install pipenv
 RUN cd /.metta/ && pipenv install
-RUN cat /.metta/Pipfile
 
 WORKDIR /app
 EXPOSE 5000

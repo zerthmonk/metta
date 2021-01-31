@@ -9,13 +9,26 @@ services:
     volumes:
       - ./front/src:/app/src
       - ./files/shared:/app/shared
-    environment:
-      - HOST=0.0.0.0
-      - CHOKIDAR_USEPOLLING=true
     command: >
       sh -c "npm run dev"
     ports:
       - 8080:8080
+
+  metta-back:
+    build:
+      context: .
+      dockerfile: ./back.docker
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./back:/app/src
+      - ./files/shared:/app/shared
+      - ./files/session:/app/session
+    environment:
+      - DEBUG=False
+    env_file: .env
+    command: >
+      sh -c "cd /.metta/ && pipenv run python /app/src/main.py"
 
   metta-proxy:
     build:
@@ -23,24 +36,12 @@ services:
     ports:
       - 80:80
 
-  metta-back:
-    build:
-      context: .
-      dockerfile: ./back.docker
+  metta-db:
+    image: postgres:latest
     restart: unless-stopped
-    env_file: '.env'
-    stdin_open: true
-    tty: true
     volumes:
-      - ./back:/app/src
-      - ./files/shared:/app/shared
-      - ./files/session:/app/session
-    environment:
-      - DOCKER=True
-      - DEBUG=False
-      - SESSION=/app/session
-      - SHARED=/app/shared
-      - PIPENV_PIPFILE=/.metta/Pipfile
+      - db_volume:/var/lib/postgresql/data
     env_file: .env
-    command: >
-      sh -c "cd /.metta/ && pipenv run python /app/src/main.py"
+
+volumes:
+  db_volume: {}
