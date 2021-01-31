@@ -1,12 +1,12 @@
 FROM python:3.7-slim
 
 ENV PYTHONUBUFFERED=1
+RUN mkdir /app ~/.metta
 
-COPY back/Pipfile /
+COPY back/Pipfile /.metta/Pipfile
 RUN python -m pip install --upgrade pip && \
     python -m pip install pipenv
-RUN pipenv lock && pipenv install
+RUN cd /.metta/ && pipenv install
+RUN cat /.metta/Pipfile
 
-RUN mkdir /app
 WORKDIR /app
-

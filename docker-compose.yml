@@ -25,14 +25,19 @@ services:
       dockerfile: ./back.docker
     restart: unless-stopped
     env_file: '.env'
+    stdin_open: true
+    tty: true
     environment:
       - DOCKER=True
-      - PIPENV_PIPFILE=/Pipfile
+      - DEBUG=True
+      - PIPENV_PIPFILE=/.metta/Pipfile
+      - SESSION_FILE=/.metta/.session
+    env_file: .env
     volumes:
       - ./back:/app
       - ./shared:/app/shared
     command: >
-      sh -c "cd / && pipenv run python /app/main.py"
+      sh -c "cd /.metta/ && pipenv run python /app/main.py"
     ports:
       - 5000:5000
     networks:
