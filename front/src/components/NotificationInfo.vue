@@ -13,6 +13,7 @@ export default {
   @import '../assets/variables'
 
   .notification_info
-    color: $main-color
+    color: $main-light
+    border-color: $main-normal
 
 </style>
