@@ -29,7 +29,6 @@ services:
     env_file: .env
     command: >
       sh -c "
-        ./wait-for-it.sh metta-db:5432 &&
         pipenv run python /app/src/main.py
       "
 
@@ -37,7 +36,7 @@ services:
     build:
       context: ./docker/nginx
     ports:
-      - 8090:80
+      - 8888:8888
 
 volumes:
   db_volume: {}

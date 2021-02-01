@@ -122,14 +122,6 @@ async def root():
     return 'it works'
 
 
-async def main():
-    try:
-        SESSION_STRING = await get_session_string(SESSION_FILE)
-        return True
-    except KeyboardInterrupt:
-        await asyncio.sleep(0)
-
-
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(session.auth())
