@@ -1,63 +1,60 @@
 <template>
-<form
-  id="app"
-  @submit="checkForm"
->
+  <form v-on:submit.prevent="checkForm">
 
-  <p v-if="errors.length">
-    <b>Please correct the following error(s):</b>
-    <ul>
-      <li v-for="error in errors"
-          :key=error.key>
-          {{ error.text }}
-      </li>
-    </ul>
-  </p>
+    <p>
+      <input
+        id="entity"
+        v-model="form.entity"
+        type="text"
+        name="entity"
+      >
+      <input
+        type="submit"
+        value="Search"
+      >
+    </p>
 
-  <p>
-    <label for="entity">Entity name</label>
-    <input
-      id="entity"
-      v-model="entity"
-      type="text"
-      name="entity"
-    >
-  </p>
+    <p>{{this.result}}</p>
 
-  <p>
-    <input
-      type="submit"
-      value="Submit"
-    >
-  </p>
-
-</form>
+  </form>
 </template>
 
 <script>
+import axios from 'axios';
 import { BACKEND_URL } from '../conf';
 import eventBus from '../event-bus';
 
 export default {
+
   data() {
     return {
-      errors: [],
-      entity: '',
+      result: '',
+      form: {
+        entity: ''
+      }
     }
   },
 
   methods: {
-    checkForm: (e) => {
-      if (this.entity && this.entity.length) {
-        return true;
+
+    checkForm() {
+      // validation goes here
+      if (this.form.entity != '') {
+        this.searchEntity();
       }
-      if (!this.entity) {
-        this.errors.push({
-          key: this.errors.length + 1,
-          text: 'Entity name required.'
-        });
-      }
-      e.preventDefault();
+    },
+
+    searchEntity() {
+      console.log(`posting to ${BACKEND_URL}/info`)
+      axios.post(`${BACKEND_URL}/info`, this.form)
+        .then(response => {
+          if (response.data.error) { throw response.data.error };
+          eventBus.$emit('info', 'successful info request, retrieving data...')
+          this.result = response.data;
+        })
+        .catch (errorMessage => {
+          eventBus.$emit('error', errorMessage);
+        })
     }
   }
 }
@@ -66,5 +63,11 @@ export default {
 <style lang="sass" scoped>
   @import '../assets/mixins'
   @import '../assets/variables'
+
+  form
+    padding-left: 2rem
+
+    input
+      padding: 1rem
 
 </style>
