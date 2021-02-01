@@ -39,15 +39,5 @@ services:
     ports:
       - 8090:80
 
-  metta-db:
-    image: postgres:latest
-    restart: unless-stopped
-    volumes:
-      - db_volume:/var/lib/postgresql/data
-    environment: 
-      - POSTGRES_USER=$DB_USER
-      - POSTGRES_PASSWORD=$DB_PASS
-      - POSTGRES_NAME=$DB_NAME
-
 volumes:
   db_volume: {}
