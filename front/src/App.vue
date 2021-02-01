@@ -5,68 +5,69 @@
         :user="user"
       />
     </div>
-    <NotificationList
-      :messages="messages"
-      />
+    <!-- <user-request></user-request> -->
+    <error-spawner></error-spawner>
+    <notification-list ref='notifications'></notification-list>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
-import UserStat from './components/UserStat.vue';
-import NotificationList from './components/NotificationList.vue';
-import { getUniqueId } from './helpers';
-import { BACKEND_URL, MESSAGE_TYPE_ALLOWED } from './conf';
+import eventBus from './event-bus.js';
+import { BACKEND_URL } from './conf';
 
+import UserStat from './components/UserStat.vue';
+import UserRequest from './components/UserRequest.vue';
+import NotificationList from './components/NotificationList.vue';
+import ErrorSpawner from './components/ErrorSpawner.vue';
 
 console.log(`working with ${BACKEND_URL}`);
+
 
 export default {
   name: 'app',
   components: {
     UserStat,
-    NotificationList
+    UserRequest,
+    NotificationList,
+    ErrorSpawner
   },
 
   data() {
     return {
       msg: 'behold. my first Vue app',
       user: null,
-      messages: {},
       form: {
         entity: 'warkatu'
       }
     }
   },
 
+  created() {
+    eventBus.$on('error', (e) => this.$refs.notifications.addMessage('error', e));
+    eventBus.$on('info', (e) => this.$refs.notifications.addMessage('info', e));
+  },
+
   mounted() {
-    axios
-      .get(`${BACKEND_URL}/me`)
-      .then(response => {
-        if (response.data.error) { throw response.data.error };
-        this.user = response.data;
-      })
-      .catch (errorMessage => {
-        this.addMessage('error', errorMessage);
-        console.error(errorMessage);
-      })
+    this.getLoginInfo();
   },
 
   methods: {
-    addMessage(type, text) {
-      let _id = getUniqueId();
-      // possibility of duplicate IDs is extremely low, though
-      if (this.messages[_id]) _id = getUniqueId();
-      if (!Object.values(MESSAGE_TYPE_ALLOWED).includes(type)) type = MESSAGE_TYPE_ALLOWED.default;
-      const message = {
-        id: _id,
-        type: type,
-        text: text
-      }
-      // reactivity was learned the painful way
-      this.$set(this.messages, _id, message);
+
+    getLoginInfo() {
+      axios
+        .get(`${BACKEND_URL}/me`)
+        .then(response => {
+          if (response.data.error) { throw response.data.error };
+          this.user = response.data;
+        })
+        .catch (errorMessage => {
+          this.$refs.notifications.addMessage('error', errorMessage);
+        })
     }
+
   }
+
 }
 </script>
 

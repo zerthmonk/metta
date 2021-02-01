@@ -36,7 +36,7 @@ export default {
   computed: {
     link() { return `https://t.me/${this.user.username}` },
     lineSize() { return `line-height: ${this.size};` }
-  }
+  },
 }
 </script>
 
