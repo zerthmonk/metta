@@ -37,7 +37,6 @@
 
 <script>
 import eventBus from '../event-bus';
-import { BACKEND_URL } from '../conf';
 
 export default {
   data() {
@@ -61,6 +60,9 @@ export default {
   @import '../assets/mixins'
   @import '../assets/variables'
 
+  .danger
+    color: $danger
+    
   .spawner
     width: 100%
     max-width: 320px
@@ -90,7 +92,6 @@ export default {
     background: lighten($danger, 30%)
     border-color: $danger
 
-
   .field
     display: flex
     justify-content: space-between
@@ -107,8 +108,5 @@ export default {
 
       option:nth-child(2)
         background: $main-normal
-
-  .danger
-    color: $danger
 
 </style>
