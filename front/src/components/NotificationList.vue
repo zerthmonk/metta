@@ -32,7 +32,7 @@ export default {
   props: {
     timeout: {
       type: Number,
-      default: 1000
+      default: 4000
     },
     limit: {
       type: Number,

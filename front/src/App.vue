@@ -5,7 +5,7 @@
         :user="user"
       />
     </div>
-    <!-- <user-request></user-request> -->
+    <user-request></user-request>
     <error-spawner></error-spawner>
     <notification-list ref='notifications'></notification-list>
   </div>
@@ -55,8 +55,7 @@ export default {
   methods: {
 
     getLoginInfo() {
-      axios
-        .get(`${BACKEND_URL}/me`)
+      axios.get(`${BACKEND_URL}/me`)
         .then(response => {
           if (response.data.error) { throw response.data.error };
           this.user = response.data;
