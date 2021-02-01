@@ -3,8 +3,7 @@
 </template>
 
 <script>
-
-const IMG = '/shared';
+import { SHARED_FOLDER } from '../conf';
 
 export default {
   props: {
@@ -20,7 +19,7 @@ export default {
   computed: {
     image() {
       return `
-        background-image: url("${IMG}/${this.uid}.jpg");
+        background-image: url("${SHARED_FOLDER}/${this.uid}.jpg");
         width: ${this.size};
         height: ${this.size};
       `

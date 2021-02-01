@@ -1,20 +1,22 @@
 <template>
   <div class="notification-wrapper">
-    <ErrorNotification
+    <NotificationError
       v-for="(text, key) in errors"
       :key="key"
       :message="text"
       />
-    <InfoNotification
+    <!-- YAGNI
+    <NotificationInfo
       v-for="(text, key) in info"
       :key="key"
       :message="text"
       />
+    -->
   </div>
 </template>
 
 <script>
-import ErrorNotification from './ErrorNotification.vue';
+import NotificationError from './NotificationError.vue';
 
 export default {
 
@@ -29,7 +31,7 @@ export default {
   },
 
   components: {
-    ErrorNotification
+    NotificationError
   },
 
   computed: {
