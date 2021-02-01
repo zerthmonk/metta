@@ -16,13 +16,10 @@ import axios from 'axios';
 import UserStat from './components/UserStat.vue';
 import NotificationList from './components/NotificationList.vue';
 import { getUniqueId } from './helpers';
+import { BACKEND_URL, MESSAGE_TYPE_ALLOWED } from './conf';
 
-const messageTypeAllowed = ['info', 'error'];
-// cannot succeed in using env :(
-// const backendURL = process.env.VUE_APP_BACKEND_URL;
-const backendURL = 'http://127.0.0.1:8090/api';
 
-console.log(`working with ${backendURL}`);
+console.log(`working with ${BACKEND_URL}`);
 
 export default {
   name: 'app',
@@ -44,7 +41,7 @@ export default {
 
   mounted() {
     axios
-      .get(`${backendURL}/me`)
+      .get(`${BACKEND_URL}/me`)
       .then(response => {
         if (response.data.error) { throw response.data.error };
         this.user = response.data;
@@ -60,7 +57,7 @@ export default {
       let _id = getUniqueId();
       // possibility of duplicate IDs is extremely low, though
       if (this.messages[_id]) _id = getUniqueId();
-      if (!messageTypeAllowed.includes(type)) type = 'info';
+      if (!Object.values(MESSAGE_TYPE_ALLOWED).includes(type)) type = MESSAGE_TYPE_ALLOWED.default;
       const message = {
         id: _id,
         type: type,
