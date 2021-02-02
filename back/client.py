@@ -13,7 +13,7 @@ class SessionConfig(object):
         self._session = ''
         self.client = None
 
-    async def auth(self):
+    async def auth(self) -> str:
         """read existing session string from file or try to authenticate"""
         if self._session:
             return self._session
@@ -49,20 +49,23 @@ class TeleGrabber(object):
     """API methods collection"""
 
     client = None
+    # I will remain silent and this info doesn't go anywhere
+    restricted = [
+        'access_hash', 
+        'phone'
+    ]
 
     def set_client(self, client: TelegramClient) -> TelegramClient:
         self.client = client
         return self.client
 
-    @staticmethod
-    def parse_data(payload) -> dict:
+    def parse_data(self, payload) -> dict:
         """parse received from telegram"""
         data = payload.__dict__
-        restricted = ['access_hash', 'phone']
-        logging.debug(f'parsing {data}\n restricted fields: {restricted}')
+        logging.debug(f'parsing {data}\n restricted fields: {self.restricted}')
         return {k: v for k, v in data.items()
                 if isinstance(v, (int, str, bool, float))
-                and k not in restricted}
+                and k not in self.restricted}
 
     async def get_info(self, entity, with_photo=True) -> dict:
         """get full info from entity"""
@@ -83,3 +86,23 @@ class TeleGrabber(object):
         logging.debug(f'downloading profile photo for {entity.id} to {fpath}')
         data = await self.client.download_profile_photo(entity, fpath)
         return fpath if data else ''
+
+    async def get_takeout(self, entity, **kwargs)
+        """take content with less limits
+        
+           support takeout named arguments
+           https://docs.telethon.dev/en/latest/modules/client.html#telethon.client.account.AccountMethods
+        """
+        takeout_args = dict(groups=True, channels=True)
+        if kwargs:
+            takeout_args.update(**kwargs)
+        logging.debug(f'taking out from channel {channel} with args: {takeout_args}')
+
+        async with self.client.takeout() as takeout:
+            takeout.get_messages(entity)
+            data = {'info': 'messages received'}
+
+            async for message in takeout.iter_messages(chat, wait_time=0):
+                # here will be database ops
+                # print(message.date)
+                pass
