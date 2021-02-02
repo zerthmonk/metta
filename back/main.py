@@ -5,49 +5,29 @@ import logging
 
 from quart import Quart, request, jsonify
 from quart_cors import cors
-from telethon import TelegramClient
-from telethon.sessions import StringSession
+
 
 from auth import authenticate
-from settings import API_HASH, API_ID, SESSION_FILE, SHARED, DEBUG, CORS_ORIGINS
+from session import SessionConfig
+from settings import SESSION_FILE, SHARED, DEBUG, CORS_ORIGINS
 
 
-SESSION_STRING = ''
 app = Quart(__name__)
 app = cors(app, allow_origin=CORS_ORIGINS)
-
-
-class SessionConfig:
-
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self._session = ''
-
-    async def auth(self):
-        """read existing session string from file or try to authenticate"""
-        if self._session:
-            return self._session
-
-        try:
-            with open(self.file_path) as fh:
-                self._session = fh.read()
-            if not self._session:
-                self._session = await authenticate(self.file_path)
-            return self._session
-        except KeyboardInterrupt:
-            await asyncio.sleep(0)
-        except FileNotFoundError or Exception:
-            logging.exception(f'when reading session file:')
-            raise
-
-    @property
-    def client(self) -> TelegramClient:
-        if not self._session:
-            raise SystemExit('not authorized!')
-        return TelegramClient(StringSession(self._session), API_ID, API_HASH)
-
-
 session = SessionConfig(SESSION_FILE)
+
+
+async def new_session():
+    authorized = await session.auth()
+    await session.connect()
+
+
+async def get_json():
+    try:
+        await request.get_json()
+    except Exception as e:
+        logging.exception(f'when decoding JSON')
+        raise
 
 
 async def get_info(entity, with_photo=True) -> dict:
@@ -112,10 +92,11 @@ async def info():
     return jsonify(data)
 
 
-@app.route('/check')
-async def check():
+@app.route('/channel')
+async def channel():
     """simple check"""
-    return 'API check'
+
+
 
 @app.route('/')
 async def root():
