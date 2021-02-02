@@ -19,12 +19,14 @@ session = SessionConfig(SESSION_FILE)
 
 async def new_session():
     authorized = await session.auth()
-    await session.connect()
+    session.client.connect()
+    return client.is_connected()
 
 
 async def get_json():
     try:
-        await request.get_json()
+        data = await request.get_json()
+        return data
     except Exception as e:
         logging.exception(f'when decoding JSON')
         raise
@@ -62,40 +64,70 @@ async def get_profile_photo(client, entity) -> str:
     return fpath if data else ''
 
 
+async def get_takeout(entity, **kwargs):
+    """take content with less limits
+
+       support takeout named arguments
+       https://docs.telethon.dev/en/latest/modules/client.html#telethon.client.account.AccountMethods
+    """
+    result = []
+    takeout_args = dict(groups=True, channels=True)
+    if kwargs:
+        takeout_args.update(**kwargs)
+    logging.debug(f'taking out from channel {entity} with args: {takeout_args}')
+
+    # TODO: strange connection behavior, investigate
+    async with session.client as client:
+        async with client.takeout() as takeout:
+            takeout.get_messages(entity)
+            data = {'info': 'messages received'}
+            async for message in takeout.iter_messages(entity, wait_time=0):
+                # here will be database ops
+                result.append(message.date)
+    return result
+
+
 @app.route('/me')
 async def me():
     """get self info handle"""
     try:
-        data = await get_info('me')
-        return jsonify(data)
+        result = await get_info('me')
     except Exception as e:
         _msg = 'when retrieving self info:'
         logging.exception(_msg)
-        return jsonify({'error': f'{_msg} {e}'})
+        result = {'error': f'{_msg} {e}'}
+    return jsonify(result)
 
 
 @app.route('/info', methods=['POST'])
 async def info():
     """get entity info handle"""
     try:
-        data = await request.get_json()
+        data = await get_json()
+        entity = data.get('entity')
+        if not entity:
+            raise ValueError('entity name not specified!')
+        logging.debug(f'requested {entity} info')
+        result = await get_info(entity)
     except Exception as e:
-        logging.exception(f'when decoding JSON')
-        return {'error': f'{e}'}
-
-    entity = data.get('entity')
-    if not entity:
-        return {'error': 'search item not specified!'}
-
-    logging.debug(f'requested {entity} info')
-    data = await get_info(entity)
-    return jsonify(data)
+        logging.exception('on /info endpoint: ')
+        result = {'error': f'{e}'}
+    return jsonify(result)
 
 
-@app.route('/channel')
-async def channel():
+@app.route('/messages', methods=['POST'])
+async def messages():
     """simple check"""
-
+    try:
+        data = await get_json()
+        entity = data.get('entity')
+        if not entity:
+            raise ValueError('entity name not specified!')
+        result = await get_takeout(entity)
+    except Exception as e:
+        logging.exception('on /messages endpoint: ')
+        result = {'error': f'{e}'}
+    return jsonify(result)
 
 
 @app.route('/')
@@ -106,7 +138,7 @@ async def root():
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(session.auth())
-    if session._session:
+    if session.client:
         app.run(host='0.0.0.0', debug=DEBUG)
     else:
-        raise SystemExit('missing session string, user not authorized')
+        raise SystemExit('client not connected')
