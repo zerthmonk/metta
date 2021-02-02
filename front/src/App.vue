@@ -81,6 +81,8 @@ html, body
   padding: 0
   margin: 0
   @include gradient($color1: $main-light, $color2: $main-dark)
+  background-repeat: no-repeat;
+  overflow: hidden
 
 .container
   margin: auto
