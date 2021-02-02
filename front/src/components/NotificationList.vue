@@ -22,6 +22,10 @@ import NotificationError from './NotificationError.vue';
 import NotificationInfo from './NotificationInfo.vue';
 
 export default {
+  components: {
+    NotificationInfo,
+    NotificationError
+  },
 
   data() {
     return {
@@ -32,17 +36,12 @@ export default {
   props: {
     timeout: {
       type: Number,
-      default: 4000
+      default: 4000  // milliseconds
     },
     limit: {
       type: Number,
       default: 10
     }
-  },
-
-  components: {
-    NotificationInfo,
-    NotificationError
   },
 
   computed: {
@@ -63,16 +62,14 @@ export default {
         type: type,
         text: text,
       }
-      // reactivity was learned the painful way
-      const messageList = Object.values(this.messages);
-      if (messageList.length >= this.limit) {
-        const oldest = messageList[0];
-        console.log(oldest);
-        if (oldest) this.delMessage(oldest);
-      }
+
+      this.keepMessageLimit();
+
       if (!message.infinite) {
         setTimeout(() => this.delMessage(message), this.timeout);
       }
+
+      // reactivity was learned the painful way
       this.$set(this.messages, _id, message);
     },
 
@@ -83,6 +80,14 @@ export default {
         }
         return accum;
       }, {});
+    },
+
+    keepMessageLimit() {
+      const messageList = Object.values(this.messages);
+      if (messageList.length >= this.limit) {
+        const oldest = messageList[0];
+        if (oldest) this.delMessage(oldest);
+      }
     },
 
     delMessage(message) {
