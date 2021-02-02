@@ -24,6 +24,8 @@ import axios from 'axios';
 import { BACKEND_URL } from '../conf';
 import eventBus from '../event-bus';
 
+const URL = `${BACKEND_URL}/info`;
+
 export default {
 
   data() {
@@ -45,8 +47,8 @@ export default {
     },
 
     searchEntity() {
-      console.log(`posting to ${BACKEND_URL}/info`)
-      axios.post(`${BACKEND_URL}/info`, this.form)
+      console.log(`posting to ${URL}`);
+      axios.post(`${URL}`, this.form)
         .then(response => {
           if (response.data.error) { throw response.data.error };
           eventBus.$emit('info', 'successful info request, retrieving data...')

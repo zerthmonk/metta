@@ -5,49 +5,31 @@ import logging
 
 from quart import Quart, request, jsonify
 from quart_cors import cors
-from telethon import TelegramClient
-from telethon.sessions import StringSession
+
 
 from auth import authenticate
-from settings import API_HASH, API_ID, SESSION_FILE, SHARED, DEBUG, CORS_ORIGINS
+from session import SessionConfig
+from settings import SESSION_FILE, SHARED, DEBUG, CORS_ORIGINS
 
 
-SESSION_STRING = ''
 app = Quart(__name__)
 app = cors(app, allow_origin=CORS_ORIGINS)
-
-
-class SessionConfig:
-
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self._session = ''
-
-    async def auth(self):
-        """read existing session string from file or try to authenticate"""
-        if self._session:
-            return self._session
-
-        try:
-            with open(self.file_path) as fh:
-                self._session = fh.read()
-            if not self._session:
-                self._session = await authenticate(self.file_path)
-            return self._session
-        except KeyboardInterrupt:
-            await asyncio.sleep(0)
-        except FileNotFoundError or Exception:
-            logging.exception(f'when reading session file:')
-            raise
-
-    @property
-    def client(self) -> TelegramClient:
-        if not self._session:
-            raise SystemExit('not authorized!')
-        return TelegramClient(StringSession(self._session), API_ID, API_HASH)
-
-
 session = SessionConfig(SESSION_FILE)
+
+
+async def new_session():
+    authorized = await session.auth()
+    session.client.connect()
+    return client.is_connected()
+
+
+async def get_json():
+    try:
+        data = await request.get_json()
+        return data
+    except Exception as e:
+        logging.exception(f'when decoding JSON')
+        raise
 
 
 async def get_info(entity, with_photo=True) -> dict:
@@ -82,40 +64,71 @@ async def get_profile_photo(client, entity) -> str:
     return fpath if data else ''
 
 
+async def get_takeout(entity, **kwargs):
+    """take content with less limits
+
+       support takeout named arguments
+       https://docs.telethon.dev/en/latest/modules/client.html#telethon.client.account.AccountMethods
+    """
+    result = []
+    takeout_args = dict(groups=True, channels=True)
+    if kwargs:
+        takeout_args.update(**kwargs)
+    logging.debug(f'taking out from channel {entity} with args: {takeout_args}')
+
+    # TODO: strange connection behavior, investigate
+    async with session.client as client:
+        async with client.takeout() as takeout:
+            takeout.get_messages(entity)
+            data = {'info': 'messages received'}
+            async for message in takeout.iter_messages(entity, wait_time=0):
+                # here will be database ops
+                result.append(message.date)
+    return result
+
+
 @app.route('/me')
 async def me():
     """get self info handle"""
     try:
-        data = await get_info('me')
-        return jsonify(data)
+        result = await get_info('me')
     except Exception as e:
         _msg = 'when retrieving self info:'
         logging.exception(_msg)
-        return jsonify({'error': f'{_msg} {e}'})
+        result = {'error': f'{_msg} {e}'}
+    return jsonify(result)
 
 
 @app.route('/info', methods=['POST'])
 async def info():
     """get entity info handle"""
     try:
-        data = await request.get_json()
+        data = await get_json()
+        entity = data.get('entity')
+        if not entity:
+            raise ValueError('entity name not specified!')
+        logging.debug(f'requested {entity} info')
+        result = await get_info(entity)
     except Exception as e:
-        logging.exception(f'when decoding JSON')
-        return {'error': f'{e}'}
-
-    entity = data.get('entity')
-    if not entity:
-        return {'error': 'search item not specified!'}
-
-    logging.debug(f'requested {entity} info')
-    data = await get_info(entity)
-    return jsonify(data)
+        logging.exception('on /info endpoint: ')
+        result = {'error': f'{e}'}
+    return jsonify(result)
 
 
-@app.route('/check')
-async def check():
+@app.route('/messages', methods=['POST'])
+async def messages():
     """simple check"""
-    return 'API check'
+    try:
+        data = await get_json()
+        entity = data.get('entity')
+        if not entity:
+            raise ValueError('entity name not specified!')
+        result = await get_takeout(entity)
+    except Exception as e:
+        logging.exception('on /messages endpoint: ')
+        result = {'error': f'{e}'}
+    return jsonify(result)
+
 
 @app.route('/')
 async def root():
@@ -125,7 +138,7 @@ async def root():
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(session.auth())
-    if session._session:
+    if session.client:
         app.run(host='0.0.0.0', debug=DEBUG)
     else:
-        raise SystemExit('missing session string, user not authorized')
+        raise SystemExit('client not connected')
