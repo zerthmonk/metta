@@ -15,10 +15,6 @@ async def authenticate(fpath):
         Anyone with this string can use it to login into your account and do anything they want to to do.
     """
     try:
-        if __name__ != '__main__':
-            logging.warning('First run for authentication should be: `docker-compose run --rm <backend-name>` '\
-                            'Do not run it with `docker-compose up` without authentication. It will hang.')
-
         async with TelegramClient(StringSession(), API_ID, API_HASH) as client:
             with open(fpath, 'w') as fh:
                 session_string = client.session.save()

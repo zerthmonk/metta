@@ -38,7 +38,7 @@ export default {
   methods: {
 
     checkForm() {
-      // todo: validation goes here
+      // validation goes here
       if (this.form.entity != '') {
         this.searchEntity();
       }

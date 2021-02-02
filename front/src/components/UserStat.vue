@@ -20,8 +20,6 @@
 import UserPhoto from './UserPhoto.vue';
 
 export default {
-  components: { UserPhoto },
-
   props: {
     user: {
       type: Object,
@@ -33,11 +31,12 @@ export default {
     }
   },
 
+  components: { UserPhoto },
+
   computed: {
     link() { return `https://t.me/${this.user.username}` },
     lineSize() { return `line-height: ${this.size};` }
   },
-
 }
 </script>
 
