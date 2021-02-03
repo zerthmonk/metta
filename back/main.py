@@ -37,18 +37,18 @@ async def get_info(entity, with_photo=True) -> dict:
     logging.debug(f'getting info for {entity}')
     async with session.client as client:
         data = await client.get_entity(entity)
-        result = parse_data(data)
+        result = parse_data(data.__dict__)
         if with_photo:
             image = await get_profile_photo(client, data)
             result.update({'photo': image})
         return result
 
 
-def parse_data(payload) -> dict:
+def parse_data(data) -> dict:
     """parse received from telegram"""
-    data = payload.__dict__
     restricted = ['access_hash', 'phone']
-    logging.debug(f'parsing {data}\n restricted fields: {restricted}')
+    # todo: informative logging
+    logging.debug(f'parsing data restricted fields: {restricted}')
     return {k: v for k, v in data.items()
             if isinstance(v, (int, str, bool, float))
             and k not in restricted}
@@ -83,7 +83,9 @@ async def get_takeout(entity, **kwargs):
             data = {'info': 'messages received'}
             async for message in takeout.iter_messages(entity, wait_time=0):
                 # here will be database ops
-                result.append(message.date)
+                if message:
+                    result.append({'date': message.date or 0,
+                                   'views': message.views or 0})
     return result
 
 
@@ -123,10 +125,11 @@ async def messages():
         entity = data.get('entity')
         if not entity:
             raise ValueError('entity name not specified!')
-        result = await get_takeout(entity)
+        result = await get_takeout(entity, revert=True)
     except Exception as e:
         logging.exception('on /messages endpoint: ')
         result = {'error': f'{e}'}
+    print(result)
     return jsonify(result)
 
 
