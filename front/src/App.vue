@@ -1,13 +1,14 @@
 <template>
   <div id="app" class="container">
     <div class="content user-content">
-      <UserStat
-        :user="user"
-      />
+      <user-stat-login
+        :user=user
+      ></user-stat-login>
     </div>
-    <user-request></user-request>
-    <error-spawner></error-spawner>
+    <data-request></data-request>
+    <!-- <error-spawner></error-spawner> -->
     <notification-list ref='notifications'></notification-list>
+    <chart-stat></chart-stat>
   </div>
 </template>
 
@@ -16,10 +17,11 @@ import axios from 'axios';
 import eventBus from './event-bus.js';
 import { BACKEND_URL } from './conf';
 
-import UserStat from './components/UserStat.vue';
-import UserRequest from './components/UserRequest.vue';
+import UserStatLogin from './components/UserStatLogin.vue';
+import DataRequest from './components/DataRequest.vue';
 import NotificationList from './components/NotificationList.vue';
 import ErrorSpawner from './components/ErrorSpawner.vue';
+import ChartStat from './components/ChartStat.vue';
 
 console.log(`working with ${BACKEND_URL}`);
 
@@ -27,10 +29,11 @@ console.log(`working with ${BACKEND_URL}`);
 export default {
   name: 'app',
   components: {
-    UserStat,
-    UserRequest,
+    ChartStat,
+    ErrorSpawner,
     NotificationList,
-    ErrorSpawner
+    UserStatLogin,
+    DataRequest,
   },
 
   data() {

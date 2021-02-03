@@ -1,3 +1,5 @@
+import regeneratorRuntime from "regenerator-runtime";
+
 import Vue from 'vue';
 import App from './App.vue';
 
