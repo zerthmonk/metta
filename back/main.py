@@ -41,7 +41,7 @@ async def get_info(entity, with_photo=True) -> dict:
 def parse_data(payload) -> dict:
     """parse received from telegram"""
     data = payload.__dict__
-    restricted = ['access_hash', 'phone']
+    restricted = ['access_hash']
     logging.debug(f'parsing data with restricted fields: {restricted}')
     return {k: v for k, v in data.items()
             if isinstance(v, (int, str, bool, float))

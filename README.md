@@ -19,6 +19,5 @@ API_ID=<api_id>
 API_HASH=<api_hash>
 ```
 
-- запустить процедуру аутентификации в Telegram через `pipenv run python
-  back/auth.py` в поднятом metta-back контейнере
+- запустить процедуру аутентификации в Telegram через `pipenv run python /app/back/auth.py` в поднятом metta-back контейнере
 

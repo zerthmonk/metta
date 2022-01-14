@@ -59,6 +59,7 @@ export default {
         .then(response => {
           if (response.data.error) { throw response.data.error };
           this.user = response.data;
+          this.$refs.notifications.addMessage('info', 'connected!');
         })
         .catch (errorMessage => {
           this.$refs.notifications.addMessage('error', errorMessage);
