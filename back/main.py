@@ -1,4 +1,5 @@
 import os
+import time
 import asyncio
 import logging
 
@@ -27,11 +28,13 @@ async def get_info(entity, with_photo=True) -> dict:
     """get full info from entity"""
     logging.debug(f'getting info for {entity}')
     async with session.client as client:
+        client.connect()
         data = await client.get_entity(entity)
         result = parse_data(data)
         if with_photo:
             image = await get_profile_photo(client, data)
             result.update({'photo': image})
+        logging.debug(f'finished with result: {result}')
         return result
 
 
@@ -39,7 +42,7 @@ def parse_data(payload) -> dict:
     """parse received from telegram"""
     data = payload.__dict__
     restricted = ['access_hash', 'phone']
-    logging.debug(f'parsing {data}\n restricted fields: {restricted}')
+    logging.debug(f'parsing data with restricted fields: {restricted}')
     return {k: v for k, v in data.items()
             if isinstance(v, (int, str, bool, float))
             and k not in restricted}
@@ -78,7 +81,7 @@ async def get_takeout(entity, **kwargs):
     return result
 
 
-@app.route('/me')
+@app.route('/api/me')
 async def me():
     """get self info handle"""
     try:
@@ -90,7 +93,7 @@ async def me():
     return jsonify(result)
 
 
-@app.route('/info', methods=['POST'])
+@app.route('/api/info', methods=['POST'])
 async def info():
     """get entity info handle"""
     try:
@@ -106,7 +109,7 @@ async def info():
     return jsonify(result)
 
 
-@app.route('/messages', methods=['POST'])
+@app.route('/api/messages', methods=['POST'])
 async def messages():
     """simple check"""
     try:
@@ -127,13 +130,8 @@ async def root():
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(session.auth())
-    logging.info('auth completed')
-    if session.client and session.client.is_connected():
-        host = 'localhost'
-        port = 5000
-        logging.info(f'Server running on {host}')
+    host = '0.0.0.0'
+    if session.client:
         app.run(host=host, debug=DEBUG)
     else:
-        raise SystemExit('client not connected')
+        raise SystemExit('run pipenv run auth.py first!')

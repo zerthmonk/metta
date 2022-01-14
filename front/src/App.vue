@@ -6,7 +6,7 @@
       />
     </div>
     <user-request></user-request>
-    <error-spawner></error-spawner>
+    <!-- <error-spawner></error-spawner> -->
     <notification-list ref='notifications'></notification-list>
   </div>
 </template>
