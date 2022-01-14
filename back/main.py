@@ -1,13 +1,10 @@
 import os
-import sys
 import asyncio
 import logging
 
 from quart import Quart, request, jsonify
 from quart_cors import cors
 
-
-from auth import authenticate
 from session import SessionConfig
 from settings import SESSION_FILE, SHARED, DEBUG, CORS_ORIGINS
 
@@ -15,12 +12,6 @@ from settings import SESSION_FILE, SHARED, DEBUG, CORS_ORIGINS
 app = Quart(__name__)
 app = cors(app, allow_origin=CORS_ORIGINS)
 session = SessionConfig(SESSION_FILE)
-
-
-async def new_session():
-    authorized = await session.auth()
-    session.client.connect()
-    return client.is_connected()
 
 
 async def get_json():
@@ -138,7 +129,11 @@ async def root():
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(session.auth())
-    if session.client:
-        app.run(host='0.0.0.0', debug=DEBUG)
+    logging.info('auth completed')
+    if session.client and session.client.is_connected():
+        host = 'localhost'
+        port = 5000
+        logging.info(f'Server running on {host}')
+        app.run(host=host, debug=DEBUG)
     else:
         raise SystemExit('client not connected')
